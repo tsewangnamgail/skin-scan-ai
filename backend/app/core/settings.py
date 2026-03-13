@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     API_VERSION: str = "v1"
     DEBUG: bool = True
 
-    MODEL_PATH: str = os.path.join("model", "skin_cancer_model.h5")
+    MODEL_PATH: str = os.path.join("model", "efficientnet_ham10000.keras")
     LABELS_PATH: str = os.path.join("model", "labels.json")
 
     KNOWLEDGE_DIR: str = os.path.join("knowledge", "books")
