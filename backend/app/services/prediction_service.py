@@ -11,6 +11,11 @@ def run_prediction(img_array: np.ndarray) -> dict:
     labels = get_labels()
     prob_list = probabilities[0].tolist()
 
+    # Make sure labels length matches model output length
+    num_classes = len(prob_list)
+    if len(labels) != num_classes:
+        labels = labels[:num_classes]
+
     class_probabilities = {}
     for i, label in enumerate(labels):
         class_probabilities[label] = round(prob_list[i], 6)

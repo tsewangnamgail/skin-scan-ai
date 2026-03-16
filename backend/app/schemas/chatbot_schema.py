@@ -9,4 +9,5 @@ class ChatRequest(BaseModel):
 
 
 class ChatResponse(BaseModel):
+    # Use 'response' to match older frontend expectations.
     response: str

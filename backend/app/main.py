@@ -7,7 +7,6 @@ from app.api.routes import predict, heatmap, risk, report, chatbot, health
 from app.core.logger import logger
 from app.core.settings import settings
 from app.models.model_loader import load_model
-from app.rag.vector_store import initialize_vector_store
 
 app = FastAPI(
     title="AI Skin Cancer Detection System",
@@ -23,6 +22,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Mount routers at root so frontend calls /predict, /heatmap, etc. work.
 app.include_router(predict.router)
 app.include_router(heatmap.router)
 app.include_router(risk.router)
@@ -39,8 +39,3 @@ async def startup_event():
         logger.info("CNN model loaded successfully.")
     except Exception as e:
         logger.error(f"Failed to load CNN model: {e}")
-    try:
-        initialize_vector_store()
-        logger.info("Vector store initialized successfully.")
-    except Exception as e:
-        logger.warning(f"Failed to initialize vector store: {e}")
