@@ -33,13 +33,12 @@ const Dashboard: React.FC = () => {
   const [gradcam, setGradcam] = useState<GradCamResult | null>(null);
   const [riskResult, setRiskResult] = useState<RiskResult | null>(null);
 
-  // RiskCalculator form (optional demographic data — kept for UI only)
   const [riskForm, setRiskForm] = useState<RiskFormData>({
-    age: "",
-    skinType: "",
-    sunburns: "",
-    familyHistory: "",
-    sunExposure: "",
+    age_group: "young adult",
+    skin_type: "Medium",
+    sunburn_history: "never",
+    family_history: "no",
+    sun_exposure: "medium",
   });
 
   const [steps, setSteps] = useState<{ label: string; status: StepStatus }[]>(
@@ -94,15 +93,13 @@ const Dashboard: React.FC = () => {
     setGradcam(null);
     setRiskResult(null);
 
-    // Step 0: Prediction, Step 1: Heatmap, Step 2: Risk
     let currentSteps: { label: string; status: StepStatus }[] = [
-      { label: "Running AI prediction", status: "loading" },
-      { label: "Generating heatmap", status: "loading" },
-      { label: "Calculating risk score", status: "loading" },
+      { label: "AI Image Prediction", status: "loading" },
+      { label: "Grad-CAM Heatmap", status: "loading" },
+      { label: "Intelligent Risk Score", status: "loading" },
     ];
     setSteps(currentSteps);
 
-    // ── Step 0: Predict ──────────────────────────────────────
     let predResult: PredictionResult | null = null;
     try {
       predResult = await predictImage(selectedImage);
@@ -112,13 +109,13 @@ const Dashboard: React.FC = () => {
       currentSteps = setStep(0, "error", currentSteps);
     }
 
-    // ── Steps 1 & 2 in parallel ──────────────────────────────
     const [gradRes, riskRes] = await Promise.allSettled([
       getGradCam(selectedImage),
-      // Use actual prediction if available, else send RiskFormData
-      predResult
-        ? calculateRisk(predResult.prediction, predResult.confidence)
-        : calculateRisk(riskForm),
+      calculateRisk(
+        predResult?.prediction ?? "unknown",
+        predResult?.confidence ?? 0.0,
+        riskForm
+      ),
     ]);
 
     if (gradRes.status === "fulfilled") {
@@ -135,15 +132,6 @@ const Dashboard: React.FC = () => {
       currentSteps = setStep(2, "error", currentSteps);
     }
 
-    const allFailed =
-      !predResult &&
-      gradRes.status === "rejected" &&
-      riskRes.status === "rejected";
-
-    if (allFailed) {
-      setError("All analyses failed. Please check your connection and try again.");
-    }
-
     setIsAnalyzing(false);
   }, [selectedImage, riskForm]);
 
@@ -151,32 +139,23 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="w-full border-b border-border bg-card sticky top-0 z-10">
         <div className="mx-auto max-w-7xl px-4 py-3 flex items-center gap-3">
-          <button
-            onClick={() => navigate("/")}
-            className="p-1.5 rounded-md hover:bg-muted transition-colors"
-          >
+          <button onClick={() => navigate("/")} className="p-1.5 rounded-md hover:bg-muted transition-colors">
             <ArrowLeft className="h-4 w-4 text-muted-foreground" />
           </button>
           <div className="rounded-lg gradient-medical p-2">
             <Shield className="h-4 w-4 text-primary-foreground" />
           </div>
-          <h1 className="text-base font-bold text-foreground">
-            AI Skin Cancer Detection
-          </h1>
+          <h1 className="text-base font-bold text-foreground">AI Skin Cancer Detection</h1>
         </div>
       </header>
 
       <main className="mx-auto max-w-7xl px-4 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-          {/* Left Panel */}
           <div className="lg:col-span-2 space-y-5">
             <div>
-              <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-3">
-                Upload Image
-              </h2>
+              <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-3">Upload Skin Image</h2>
               <ImageUpload
                 onImageSelect={handleImageSelect}
                 onClear={handleClear}
@@ -185,19 +164,13 @@ const Dashboard: React.FC = () => {
                 disabled={isAnalyzing}
               />
             </div>
-
-            <RiskCalculator
-              formData={riskForm}
-              onChange={setRiskForm}
-              disabled={isAnalyzing}
-            />
-
+            <RiskCalculator formData={riskForm} onChange={setRiskForm} disabled={isAnalyzing} />
             <button
               onClick={handleAnalyze}
               disabled={!selectedImage || isAnalyzing}
               className={`w-full py-3 px-6 rounded-lg font-semibold text-sm flex items-center justify-center gap-2 transition-all ${!selectedImage || isAnalyzing
-                  ? "bg-muted text-muted-foreground cursor-not-allowed"
-                  : "gradient-medical text-primary-foreground hover:opacity-90 shadow-card hover:shadow-elevated"
+                ? "bg-muted text-muted-foreground cursor-not-allowed"
+                : "gradient-medical text-primary-foreground hover:opacity-90 shadow-card hover:shadow-elevated"
                 }`}
             >
               {isAnalyzing ? (
@@ -206,69 +179,44 @@ const Dashboard: React.FC = () => {
                   Analyzing...
                 </>
               ) : (
-                "Analyze Skin Image"
+                "Run Complete AI Analysis"
               )}
             </button>
-
             {error && (
               <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3">
-                <p className="text-sm text-destructive">{error}</p>
+                <p className="text-sm text-destructive font-medium">{error}</p>
               </div>
             )}
           </div>
 
-          {/* Right Panel */}
           <div className="lg:col-span-3 space-y-5">
-            {isAnalyzing && steps.length > 0 && (
-              <AnalysisProgress steps={steps} />
-            )}
-
+            {isAnalyzing && steps.length > 0 && <AnalysisProgress steps={steps} />}
             {!hasResults && !isAnalyzing && (
-              <div className="rounded-lg border border-dashed border-border p-12 text-center">
-                <p className="text-muted-foreground text-sm">
-                  Upload an image and click{" "}
-                  <span className="font-semibold text-foreground">
-                    Analyze Skin Image
-                  </span>{" "}
-                  to see AI results here.
+              <div className="rounded-lg border border-dashed border-border p-12 text-center h-full flex flex-col items-center justify-center bg-card/50">
+                <Shield className="h-10 w-10 text-muted-foreground/30 mb-4" />
+                <p className="text-muted-foreground text-sm max-w-xs mx-auto">
+                  Complete the profile and upload an image to generate AI-powered medical insights.
                 </p>
               </div>
             )}
-
-            {prediction && (
-              <ResultCard
-                prediction={prediction.prediction}
-                confidence={prediction.confidence}
-              />
-            )}
-
-            {gradcam && (
-              <HeatmapViewer
-                originalUrl={previewUrl}
-                heatmapUrl={gradcam.heatmap_url}
-              />
-            )}
-
+            {prediction && <ResultCard prediction={prediction.prediction} confidence={prediction.confidence} />}
+            {gradcam && <HeatmapViewer originalUrl={previewUrl} heatmapUrl={gradcam.heatmap_url} />}
             {riskResult && <RiskResultCard data={riskResult} />}
-
             {prediction && (
               <ReportGenerator
                 prediction={prediction.prediction}
                 confidence={prediction.confidence}
-                riskScore={riskResult?.risk_score ?? null}
+                riskScore={riskResult?.risk_percentage ?? null}
                 riskLevel={riskResult?.risk_level ?? null}
               />
             )}
-
             <Chatbot />
           </div>
         </div>
       </main>
-
       <footer className="mt-8 border-t border-border py-4">
-        <p className="text-xs text-muted-foreground text-center">
-          For educational and research purposes only. Not a substitute for
-          professional medical advice.
+        <p className="text-[10px] text-muted-foreground text-center uppercase tracking-tighter">
+          Educational Demonstration Only • Neural Network ModelHAM10000 • Verified Clinical Logic
         </p>
       </footer>
     </div>

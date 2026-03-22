@@ -9,7 +9,7 @@ interface RiskCalculatorProps {
 }
 
 const selectClass =
-  "w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50";
+  "w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 transition-colors hover:border-accent";
 
 const RiskCalculator: React.FC<RiskCalculatorProps> = ({
   formData,
@@ -21,94 +21,91 @@ const RiskCalculator: React.FC<RiskCalculatorProps> = ({
 
   return (
     <div className="rounded-lg border border-border bg-card shadow-card overflow-hidden">
-      <div className="px-4 py-3 border-b border-border flex items-center gap-2">
-        <Calculator className="h-4 w-4 text-accent" />
-        <h3 className="text-sm font-semibold text-foreground">
-          Risk Calculator
+      <div className="gradient-medical px-4 py-3 border-b border-border flex items-center gap-2">
+        <Calculator className="h-4 w-4 text-primary-foreground" />
+        <h3 className="text-sm font-semibold text-primary-foreground uppercase tracking-wide">
+          Risk Factors Profile
         </h3>
       </div>
-      <div className="p-4 space-y-3">
+      <div className="p-4 space-y-4">
         <div>
-          <label className="text-xs font-medium text-muted-foreground mb-1 block">
+          <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
             Age Group
           </label>
           <select
             className={selectClass}
-            value={formData.age}
-            onChange={(e) => update("age", e.target.value)}
+            value={formData.age_group}
+            onChange={(e) => update("age_group", e.target.value)}
             disabled={disabled}
           >
-            <option value="">Select</option>
-            <option value="under30">Under 30</option>
-            <option value="30-50">30–50</option>
-            <option value="over50">Over 50</option>
+            <option value="under 18">Child (Under 18)</option>
+            <option value="young adult">Young Adult (18-35)</option>
+            <option value="adult">Adult (35-65)</option>
+            <option value="elderly">Elderly (65+)</option>
           </select>
         </div>
 
         <div>
-          <label className="text-xs font-medium text-muted-foreground mb-1 block">
-            Skin Type
+          <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
+            Skin Sensitivity (Fitzpatrick)
           </label>
           <select
             className={selectClass}
-            value={formData.skinType}
-            onChange={(e) => update("skinType", e.target.value)}
+            value={formData.skin_type}
+            onChange={(e) => update("skin_type", e.target.value)}
             disabled={disabled}
           >
-            <option value="">Select</option>
-            <option value="fair">Fair / Burns easily</option>
-            <option value="medium">Medium</option>
-            <option value="dark">Dark / Rarely burns</option>
+            <option value="Type 1">Type I (Very fair, always burns)</option>
+            <option value="Fair">Fair (Often burns)</option>
+            <option value="Medium">Medium (Tans gradually)</option>
+            <option value="Dark">Dark (Rarely burns)</option>
           </select>
         </div>
 
         <div>
-          <label className="text-xs font-medium text-muted-foreground mb-1 block">
-            Sunburn History
+          <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
+            History of Sunburns
           </label>
           <select
             className={selectClass}
-            value={formData.sunburns}
-            onChange={(e) => update("sunburns", e.target.value)}
+            value={formData.sunburn_history}
+            onChange={(e) => update("sunburn_history", e.target.value)}
             disabled={disabled}
           >
-            <option value="">Select</option>
-            <option value="none">None</option>
-            <option value="few">1–5 times</option>
-            <option value="many">More than 5</option>
+            <option value="never">Never or Rarely</option>
+            <option value="sometimes">Sometimes (1-2 times/year)</option>
+            <option value="often">Often (Frequent history)</option>
           </select>
         </div>
 
         <div>
-          <label className="text-xs font-medium text-muted-foreground mb-1 block">
-            Family History
+          <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
+            Family History of Skin Cancer
           </label>
           <select
             className={selectClass}
-            value={formData.familyHistory}
-            onChange={(e) => update("familyHistory", e.target.value)}
+            value={formData.family_history}
+            onChange={(e) => update("family_history", e.target.value)}
             disabled={disabled}
           >
-            <option value="">Select</option>
-            <option value="no">No</option>
-            <option value="yes">Yes</option>
+            <option value="no">No family history</option>
+            <option value="yes">Yes (Genetic history)</option>
           </select>
         </div>
 
         <div>
-          <label className="text-xs font-medium text-muted-foreground mb-1 block">
-            Sun Exposure (hrs/day)
+          <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
+            Daily UV Exposure
           </label>
           <select
             className={selectClass}
-            value={formData.sunExposure}
-            onChange={(e) => update("sunExposure", e.target.value)}
+            value={formData.sun_exposure}
+            onChange={(e) => update("sun_exposure", e.target.value)}
             disabled={disabled}
           >
-            <option value="">Select</option>
-            <option value="low">Less than 1 hr</option>
-            <option value="moderate">1–3 hrs</option>
-            <option value="high">More than 3 hrs</option>
+            <option value="low">Low (Mostly indoors)</option>
+            <option value="medium">Moderate (Commuting/Walks)</option>
+            <option value="5+ hours">High (5+ hours outdoors)</option>
           </select>
         </div>
       </div>

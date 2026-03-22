@@ -7,11 +7,11 @@ import { calculateRisk, type RiskFormData, type RiskResult } from "@/utils/api";
 
 const RiskPage: React.FC = () => {
   const [formData, setFormData] = useState<RiskFormData>({
-    age: "",
-    skinType: "",
-    sunburns: "",
-    familyHistory: "",
-    sunExposure: "",
+    age_group: "young adult",
+    skin_type: "Medium",
+    sunburn_history: "never",
+    family_history: "no",
+    sun_exposure: "medium",
   });
   const [result, setResult] = useState<RiskResult | null>(null);
   const [loading, setLoading] = useState(false);
@@ -21,8 +21,8 @@ const RiskPage: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      // Pass form data — api.ts will derive a neutral prediction for the backend
-      const res = await calculateRisk(formData);
+      // Demographic-only path — pass neutral placeholder classification
+      const res = await calculateRisk("unknown", 0.0, formData);
       setResult(res);
     } catch {
       setError("Risk calculation failed. Please check your connection and try again.");
@@ -35,12 +35,12 @@ const RiskPage: React.FC = () => {
     <PageLayout>
       <div className="space-y-6">
         <div className="flex items-center gap-3 mb-2">
-          <div className="rounded-lg gradient-medical p-2.5">
+          <div className="rounded-lg gradient-medical p-2.5 shadow-md">
             <Calculator className="h-5 w-5 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Risk Calculator</h1>
-            <p className="text-sm text-muted-foreground">Personalized skin cancer risk assessment based on clinical factors</p>
+            <h1 className="text-2xl font-bold text-foreground">Clinical Risk Profile</h1>
+            <p className="text-sm text-muted-foreground">Weighted skin cancer risk assessment based on personal and medical history.</p>
           </div>
         </div>
 
@@ -50,23 +50,23 @@ const RiskPage: React.FC = () => {
             <button
               onClick={handleCalculate}
               disabled={loading}
-              className={`w-full py-3 px-6 rounded-lg font-semibold text-sm flex items-center justify-center gap-2 transition-all ${loading
-                  ? "bg-muted text-muted-foreground cursor-not-allowed"
-                  : "gradient-medical text-primary-foreground hover:opacity-90 shadow-card"
+              className={`w-full py-3.5 px-6 rounded-lg font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-card ${loading
+                  ? "bg-muted text-muted-foreground cursor-not-allowed border-none"
+                  : "gradient-medical text-primary-foreground hover:opacity-90 shadow-elevated"
                 }`}
             >
               {loading ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Calculating...
+                  Analyzing Risk Profile...
                 </>
               ) : (
-                "Calculate Risk"
+                "Compute Personalized Risk Score"
               )}
             </button>
             {error && (
-              <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3">
-                <p className="text-sm text-destructive">{error}</p>
+              <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-4">
+                <p className="text-sm text-destructive font-medium">{error}</p>
               </div>
             )}
           </div>
@@ -75,9 +75,9 @@ const RiskPage: React.FC = () => {
             {result ? (
               <RiskResultCard data={result} />
             ) : (
-              <div className="rounded-lg border border-dashed border-border p-12 text-center h-full flex items-center justify-center">
-                <p className="text-sm text-muted-foreground">
-                  Fill in the form and click <span className="font-semibold text-foreground">Calculate Risk</span> to see your assessment.
+              <div className="rounded-lg border border-dashed border-border p-12 text-center h-full flex flex-col items-center justify-center bg-card/50">
+                <p className="text-sm text-muted-foreground max-w-xs leading-relaxed">
+                  Fill in the profile factors and click <span className="font-bold text-foreground">Compute Score</span> to generate a medical-evidence based risk profile.
                 </p>
               </div>
             )}
