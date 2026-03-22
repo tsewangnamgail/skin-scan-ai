@@ -1,6 +1,7 @@
 # ============================================================
 # app/utils/image_processing.py
 # ============================================================
+
 import io
 import base64
 import numpy as np
@@ -17,10 +18,10 @@ def read_upload_image(image_bytes: bytes) -> np.ndarray:
     return img_array
 
 
+# ✅ FIX: Removed EfficientNet preprocessing from here
 def preprocess_image(img_array: np.ndarray) -> np.ndarray:
     img = img_array.copy().astype(np.float32)
     img = np.expand_dims(img, axis=0)
-    img = tf.keras.applications.efficientnet.preprocess_input(img)
     return img
 
 

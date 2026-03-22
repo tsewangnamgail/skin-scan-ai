@@ -1,71 +1,46 @@
-# ============================================================
-# app/services/rag_chat_service.py
-# Simple dermatology chatbot without external LLM dependency
-# ============================================================
+import asyncio
+import re
 from app.core.logger import logger
-
-
-_DERM_KB: dict[str, str] = {
-    "melanoma": (
-        "Melanoma is a serious form of skin cancer that starts in pigment-producing "
-        "cells called melanocytes. It can spread (metastasize) if not detected early. "
-        "Warning signs include changes in size, shape, or color of a mole, especially "
-        "following the ABCDE rule (Asymmetry, Border irregularity, Color variation, "
-        "Diameter > 6 mm, Evolving)."
-    ),
-    "nevus": (
-        "A nevus (mole) is usually a benign cluster of melanocytes. Many people have "
-        "multiple nevi on their skin. While most are harmless, new or changing moles "
-        "should be evaluated by a dermatologist."
-    ),
-    "basal cell carcinoma": (
-        "Basal cell carcinoma (BCC) is the most common skin cancer. It often appears "
-        "as a pearly or translucent bump, a non-healing sore, or a scaly patch. BCC "
-        "rarely spreads to distant organs but can be locally destructive."
-    ),
-    "actinic keratosis": (
-        "Actinic keratosis (AK) is a rough, scaly patch caused by chronic sun damage. "
-        "It is considered a precancerous lesion because a small percentage can progress "
-        "to squamous cell carcinoma."
-    ),
-    "benign keratosis": (
-        "Benign keratoses, such as seborrheic keratoses, are non-cancerous growths that "
-        "can look warty or stuck-on. They typically do not turn into skin cancer."
-    ),
-    "dermatofibroma": (
-        "Dermatofibroma is a common, benign fibrous nodule usually found on the legs. "
-        "It often feels firm and may dimple when pinched."
-    ),
-    "vascular lesion": (
-        "Vascular lesions (for example, hemangiomas) are benign overgrowths of blood "
-        "vessels. They are usually harmless and often present as red or purple spots."
-    ),
-}
-
-
-_GENERAL_FALLBACK = (
-    "I can provide general information about common skin lesions such as melanoma, "
-    "nevi (moles), basal cell carcinoma, actinic keratosis, benign keratoses, "
-    "dermatofibromas, and vascular lesions. However, this is not a diagnosis. Any "
-    "concerning or changing lesion should be evaluated by a dermatologist."
-)
-
+from app.rag.retriever import get_retriever
+from app.rag.groq_client import get_groq_llm
+from app.core.settings import settings
 
 async def chat_with_rag(question: str) -> dict:
-    """Return a knowledge-based answer without relying on external LLMs."""
+    """Return a knowledge-based answer using direct RAG (Retrieval-Augmented Generation)."""
     try:
-        q_lower = (question or "").lower()
+        # 1. Retrieve relevant documents
+        retriever = get_retriever(k=4)
+        docs = await asyncio.to_thread(retriever.invoke, question)
+        
+        context = "\n\n".join([doc.page_content for doc in docs])
+        
+        # 2. Prepare the prompt for the LLM
+        prompt = f"""You are a helpful medical AI assistant specializing in dermatology and skin cancer.
+Use the following pieces of retrieved context to answer the user's question.
+If the context doesn't contain the answer, use your internal knowledge.
 
-        for key, text in _DERM_KB.items():
-            if key in q_lower:
-                return {"response": text}
+IMPORTANT: 
+- Do NOT use markdown bolding (no ** text **). Use plain text for emphasis if needed.
+- Do NOT include any medical disclaimer in your response.
+- Provide a direct and concise answer.
 
-        if "melanoma" in q_lower:
-            return {"response": _DERM_KB["melanoma"]}
+Context:
+{context}
 
-        return {"response": _GENERAL_FALLBACK}
+Question: {question}
+
+Answer:"""
+
+        # 3. Call the LLM
+        llm = get_groq_llm()
+        result = await asyncio.to_thread(llm.invoke, prompt)
+        
+        # result.content contains the response for ChatGroq
+        response_text = result.content
+        
+        return {"response": response_text}
     except Exception as e:
-        logger.error(f"Chatbot error: {e}")
+        logger.error(f"Chatbot error: {e}", exc_info=True)
         return {
             "response": (
                 "I encountered an internal error while processing your question. "

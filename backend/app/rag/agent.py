@@ -84,7 +84,7 @@ Thought: {agent_scratchpad}"""
         tools=tools,
         verbose=True,
         handle_parsing_errors=True,
-        max_iterations=5,
+        max_iterations=10,
         return_intermediate_steps=False,
     )
 

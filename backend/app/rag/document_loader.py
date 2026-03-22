@@ -7,6 +7,12 @@ from app.core.settings import settings
 from app.core.logger import logger
 
 
+import re
+
+def clean_text(text: str) -> str:
+    """Clean extra whitespace from extracted PDF text."""
+    return re.sub(r"\s+", " ", text).strip()
+
 def load_documents() -> list:
     knowledge_dir = settings.KNOWLEDGE_DIR
     documents = []
@@ -22,8 +28,10 @@ def load_documents() -> list:
             try:
                 loader = PyPDFLoader(filepath)
                 docs = loader.load()
+                for doc in docs:
+                    doc.page_content = clean_text(doc.page_content)
                 documents.extend(docs)
-                logger.info(f"Loaded {len(docs)} pages from {filename}")
+                logger.info(f"Loaded and cleaned {len(docs)} pages from {filename}")
             except Exception as e:
                 logger.error(f"Error loading {filename}: {e}")
 

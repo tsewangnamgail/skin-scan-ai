@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     CHROMA_PERSIST_DIR: str = os.path.join("chroma_db")
 
     GROQ_API_KEY: str = ""
-    GROQ_MODEL: str = "mixtral-8x7b-32768"
+    GROQ_MODEL: str = "llama-3.1-8b-instant"
 
     EMBEDDING_MODEL: str = "all-MiniLM-L6-v2"
 
