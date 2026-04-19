@@ -42,3 +42,10 @@ async def startup_event():
         logger.info("Vector store initialized successfully.")
     except Exception as e:
         logger.warning(f"Failed to initialize vector store: {e}")
+
+if __name__ == "__main__":
+    import uvicorn
+    import os
+    # Port binding using environment variable for Render
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run("app.main:app", host="0.0.0.0", port=port, reload=False)
